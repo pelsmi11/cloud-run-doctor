@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cloud Run Doctor
 
-## Getting Started
+Aplicación Next.js App Router para diagnosticar PawPass vía observabilidad de Google Cloud. En fundación es un placeholder técnico, calmado y legible sin agente ni MCP.
 
-First, run the development server:
+## Requisitos
+
+- Node.js `20.19.x LTS` (compatible con 22)
+- pnpm `11.9.0` (pin en `packageManager`)
+
+## Instalación
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install --frozen-lockfile
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Scripts
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Script | Descripción |
+|--------|-------------|
+| `dev` | `next dev` |
+| `build` | `next build` |
+| `start` | `next start` |
+| `lint` | `eslint .` |
+| `typecheck` | `tsc --noEmit` |
+| `test` / `test:unit` / `test:coverage` | Vitest + V8 80% |
+| `verify` | `pnpm typecheck && pnpm test:coverage` |
+| `prepare` | `node .husky/install.mjs` |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Estructura
 
-## Learn More
+```
+cloud-run-doctor/
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx, page.tsx (SiteHeader + DoctorHero + EvidencePreview)
+│   │   ├── globals.css (tokens HSL técnicos, hsl(var(--)))
+│   │   └── api/chat/route.ts (placeholder 501, runtime nodejs)
+│   ├── components/
+│   │   ├── ui/ (button, card, badge, alert, skeleton, scroll-area, separator — 7)
+│   │   └── site-header.tsx, doctor-hero.tsx, evidence-preview.tsx
+│   ├── agent/ (reservado README)
+│   ├── mcp/ (reservado README)
+│   └── lib/
+│       ├── utils.ts
+│       └── format.ts
+├── docs/
+│   ├── 02-visual-decisions.md
+│   └── 03-agent-code-tour.md
+├── .husky/
+└── components.json (style new-york, baseColor slate, shadcn@3.4.1)
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Documentación
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `docs/02-visual-decisions.md` — paleta técnica y tokens `healthy`/`evidence`/`recommended`
+- `docs/03-agent-code-tour.md` — recorrido archivo por archivo y flujo `pregunta→handler→runner→LlmAgent→MCPToolset→respuesta`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Verificación
 
-## Deploy on Vercel
+```bash
+pnpm typecheck
+pnpm test:coverage  # offline, sin Gemini/MCP
+pnpm verify
+pnpm build
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Fundación sin Gemini, ADK, MCP real, Neon ni lógica de negocio. Respuestas visibles del Doctor en español.
