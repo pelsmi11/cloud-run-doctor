@@ -6,6 +6,6 @@ describe("POST /api/chat", () => {
     const response = await POST();
     expect(response.status).toBe(501);
     const body = await response.json();
-    expect(body.message).toMatch(/no implementado/i);
+    expect(body).toEqual({ errorCode: "DOCTOR_NOT_IMPLEMENTED" });
   });
 });

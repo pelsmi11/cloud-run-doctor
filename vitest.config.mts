@@ -15,8 +15,11 @@ export default defineConfig({
       include: ["src/**/*.{ts,tsx}"],
       exclude: [
         "src/**/*.d.ts",
+        "src/**/index.ts",
         "src/**/*.test.{ts,tsx}",
         "src/**/__tests__/**",
+        "src/i18n/navigation.ts",
+        "src/i18n/request.ts",
       ],
       thresholds: {
         lines: 80,

@@ -6,12 +6,11 @@ export const runtime = "nodejs";
  * Placeholder route for Cloud Run Doctor chat.
  * No agent logic is implemented in foundation.
  */
-export async function POST() {
+export const POST = async () => {
   return NextResponse.json(
     {
-      message:
-        "Doctor no implementado en la fundación. La investigación se añadirá en SPEC-004.",
+      errorCode: "DOCTOR_NOT_IMPLEMENTED",
     },
     { status: 501 }
   );
-}
+};

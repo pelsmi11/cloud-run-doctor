@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatBadge, getSeverityLabel, pluralize } from "./format";
+import { formatBadge, pluralize } from "./format";
 
 describe("pluralize", () => {
   it("returns singular for count 1", () => {
@@ -26,31 +26,5 @@ describe("formatBadge", () => {
 
   it("handles zero", () => {
     expect(formatBadge("error", 0)).toBe("error (0)");
-  });
-});
-
-describe("getSeverityLabel", () => {
-  it("returns Healthy", () => {
-    expect(getSeverityLabel("healthy")).toBe("Healthy");
-  });
-
-  it("returns Warning", () => {
-    expect(getSeverityLabel("warning")).toBe("Warning");
-  });
-
-  it("returns Error", () => {
-    expect(getSeverityLabel("error")).toBe("Error");
-  });
-
-  it("returns Evidence", () => {
-    expect(getSeverityLabel("evidence")).toBe("Evidence");
-  });
-
-  it("returns Recommended", () => {
-    expect(getSeverityLabel("recommended")).toBe("Recommended");
-  });
-
-  it("returns Unknown for unknown", () => {
-    expect(getSeverityLabel("foo")).toBe("Unknown");
   });
 });

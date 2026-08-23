@@ -1,0 +1,38 @@
+{
+  "Metadata": {
+    "title": "Cloud Run Doctor",
+    "description": "Clear, evidence-based diagnostics for Cloud Run services."
+  },
+  "LocaleSwitcher": {
+    "label": "Language",
+    "switchTo": "Switch to {language}",
+    "en": "English",
+    "es": "Spanish"
+  },
+  "Header": {
+    "evidence": "Evidence"
+  },
+  "Hero": {
+    "title": "Clear diagnosis for Cloud Run",
+    "description": "Technical, calm and readable — prioritizes logs, evidence and recommendations.",
+    "investigate": "Investigate",
+    "recommendation": "Recommendation",
+    "placeholder": "This is a static placeholder. No agent logic is implemented yet."
+  },
+  "Evidence": {
+    "title": "Evidence",
+    "nextStep": "Next step",
+    "checkLogging": "Check Cloud Logging using the requestId."
+  },
+  "Severity": {
+    "healthy": "Healthy",
+    "warning": "Warning",
+    "error": "Error",
+    "evidence": "Evidence",
+    "recommended": "Recommended",
+    "unknown": "Unknown"
+  },
+  "Errors": {
+    "DOCTOR_NOT_IMPLEMENTED": "The Doctor is not implemented yet."
+  }
+}

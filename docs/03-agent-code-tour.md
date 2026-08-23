@@ -9,30 +9,34 @@ Este documento explica archivo por archivo los módulos importantes, sus depende
 ```
 cloud-run-doctor/src/
 ├── app/
-│   ├── layout.tsx
-│   ├── page.tsx
+│   ├── [locale]/layout.tsx
+│   ├── [locale]/page.tsx
 │   ├── globals.css
 │   └── api/chat/route.ts
 ├── components/
 │   ├── ui/ (7 primitives)
-│   ├── site-header.tsx
-│   ├── doctor-hero.tsx
-│   └── evidence-preview.tsx
+│   ├── index.ts
+│   ├── SiteHeader.tsx
+│   ├── DoctorHero.tsx
+│   ├── EvidencePreview.tsx
+│   └── LocaleSwitcher.tsx
 ├── agent/ (reservado)
 ├── mcp/ (reservado)
-└── lib/
-    ├── utils.ts
-    └── format.ts
+├── interface/
+├── utils/
+│   ├── constant/
+│   └── functions/
+└── lib/utils.ts (shim compatible para shadcn)
 ```
 
 ## Recorrido archivo por archivo
 
-### 1. `src/app/layout.tsx`
+### 1. `src/app/[locale]/layout.tsx`
 
 - **Responsabilidad**: layout raíz. Carga fuentes `Geist`/`Geist_Mono` con `next/font/google`, define `metadata`, aplica `globals.css` y clases `antialiased`, envuelve `children` en `<html lang="en">`.
 - **Depende de**: `next/font/google`, `./globals.css`
 - **Llamado por**: Next.js App Router (no se importa manualmente)
-- **Pruebas**: `src/app/layout.test.tsx` verifica que renderiza `children`
+- **Pruebas**: `src/app/[locale]/layout.test.tsx` verifica locales y metadata
 - **Notas**: comentarios/JSDoc en inglés; no contiene lógica de negocio
 
 ### 2. `src/app/globals.css`
@@ -42,16 +46,16 @@ cloud-run-doctor/src/
 - **Usado por**: todos los `ui/*` y placeholders vía `bg-background`/`text-foreground` etc.
 - **Validación**: `grep --background` triple + `hsl(var(--background))` + `pnpm build` verde
 
-### 3. `src/app/page.tsx`
+### 3. `src/app/[locale]/page.tsx`
 
 - **Responsabilidad**: home placeholder. Compone `SiteHeader` + `DoctorHero` + `EvidencePreview` en columna con `max-w-5xl` y `gap-8`. Sin estado ni fetch.
-- **Depende de**: `@/components/site-header`, `@/components/doctor-hero`, `@/components/evidence-preview`
-- **Testeado por**: `src/app/page.test.tsx` (renderiza 3 placeholders)
+- **Depende de**: `@/components` (barrel de componentes propios)
+- **Testeado por**: `src/app/[locale]/page.test.tsx` (renderiza 3 placeholders)
 - **Futuro**: seguirá siendo entrypoint; en SPEC-004 se añadirá estado de chat si hace falta
 
 ### 4. `src/app/api/chat/route.ts`
 
-- **Responsabilidad**: endpoint placeholder para chat del Doctor. Exporta `runtime = "nodejs"` y `POST` que responde `501` con mensaje en español.
+- **Responsabilidad**: endpoint placeholder para chat del Doctor. Exporta `runtime = "nodejs"` y `POST` que responde `501` con `errorCode: "DOCTOR_NOT_IMPLEMENTED"`; la UI traduce el código.
 - **Depende de**: `next/server` `NextResponse`
 - **Llamado por**: `DoctorHero` futuro (fetch) y tests
 - **Evolución**: en SPEC-004 importará `src/agent/runner.ts` y ejecutará `LlmAgent` con `MCPToolset`; mantendrá `runtime nodejs` y validación de entrada
@@ -64,35 +68,35 @@ cloud-run-doctor/src/
 - **Usado por**: placeholders y futuro chat/evidence-card
 - **Verificación**: `ls src/components/ui | wc -l` =7, `grep -r "bg-\[#" ` vacío, `pnpm build` verde
 
-### 6. `src/components/site-header.tsx`
+### 6. `src/components/SiteHeader.tsx`
 
 - **Responsabilidad**: header técnico con título y `Badge` evidence
 - **Depende de**: `@/components/ui/badge`
-- **Testeado por**: `site-header.test.tsx`
+- **Testeado por**: `SiteHeader.test.tsx`
 
-### 7. `src/components/doctor-hero.tsx`
+### 7. `src/components/DoctorHero.tsx`
 
 - **Responsabilidad**: hero técnico con título, `Button` Investigate y badges `healthy`/`warning`/`error`/`evidence` + `Alert` recomendación
 - **Depende de**: `ui/button`, `ui/badge`, `ui/alert`
-- **Testeado por**: `doctor-hero.test.tsx`
+- **Testeado por**: `DoctorHero.test.tsx`
 
-### 8. `src/components/evidence-preview.tsx`
+### 8. `src/components/EvidencePreview.tsx`
 
 - **Responsabilidad**: preview de evidencia con `Card` + `ScrollArea` (h-40) + `<pre>` mono + `Separator` + `Alert` next step
 - **Depende de**: `ui/card`, `ui/scroll-area`, `ui/separator`, `ui/alert`
-- **Testeado por**: `evidence-preview.test.tsx`
+- **Testeado por**: `EvidencePreview.test.tsx`
 - **Notas**: prioriza legibilidad `font-mono`, `h-40` scroll, no contiene datos reales de Cloud Logging
 
-### 9. `src/lib/utils.ts`
+### 9. `src/utils/functions/cn.ts` y `src/lib/utils.ts`
 
-- **Responsabilidad**: helper `cn(...ClassValue[])` que combina `clsx` + `tailwind-merge`
+- **Responsabilidad**: `cn(...ClassValue[])` combina `clsx` + `tailwind-merge`; `src/lib/utils.ts` conserva el shim que usan los primitives de shadcn
 - **Depende de**: `clsx`, `tailwind-merge`
 - **Testeado por**: `src/lib/utils.test.ts` (5 tests, 100%)
 
-### 10. `src/lib/format.ts`
+### 10. `src/utils/functions/format.ts`
 
 - **Responsabilidad**: helpers puros `pluralize`, `formatBadge`, `getSeverityLabel` (healthy/warning/error/evidence/recommended)
-- **Testeado por**: `src/lib/format.test.ts` (12 tests, 100%)
+- **Testeado por**: `src/utils/functions/format.test.ts` (12 tests, 100%)
 
 ### 11. `src/agent/` (reservado)
 
@@ -111,10 +115,10 @@ cloud-run-doctor/src/
 ## Dependencias entre archivos
 
 ```
-page.tsx → site-header.tsx / doctor-hero.tsx / evidence-preview.tsx → ui/*
+page.tsx → components/index.ts → SiteHeader.tsx / DoctorHero.tsx / EvidencePreview.tsx → ui/*
 page.tsx → layout.tsx → globals.css → @theme inline
 api/chat/route.ts → (futuro) agent/runner.ts → agent/doctor.agent.ts → mcp/* → GoogleAuth
-lib/utils.ts ← ui/* (cn)
+lib/utils.ts ← ui/* (shim) ← utils/functions/cn.ts
 ```
 
 ## Flujo de una investigación (futuro, reservado)
