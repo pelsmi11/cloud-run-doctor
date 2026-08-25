@@ -1,0 +1,11 @@
+.git
+.gitignore
+.next
+node_modules
+coverage
+.env*
+*.log
+Dockerfile*
+.dockerignore
+npm-debug.log
+.pnpm-store

@@ -7,14 +7,15 @@ import Page from "./page";
 describe("localized page", () => {
   it("renders Doctor placeholders in English", () => {
     renderWithIntl(<Page />);
-    expect(screen.getByText("Cloud Run Doctor")).toBeInTheDocument();
-    expect(screen.getByText(/Clear diagnosis for Cloud Run/i)).toBeInTheDocument();
-    expect(screen.getAllByText("Evidence").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Cloud Run Doctor").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("Clear diagnosis for Cloud Run")).toBeInTheDocument();
+    expect(screen.getByText(/Technical, calm/i)).toBeInTheDocument();
   });
 
   it("renders Doctor placeholders in Spanish", () => {
     renderWithIntl(<Page />, "es");
-    expect(screen.getByText(/Diagnósticos claros para Cloud Run/i)).toBeInTheDocument();
-    expect(screen.getAllByText("Evidencia").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Cloud Run Doctor").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("Diagnósticos claros para Cloud Run")).toBeInTheDocument();
+    expect(screen.getByText(/Técnico, sereno/i)).toBeInTheDocument();
   });
 });

@@ -18,8 +18,10 @@ export default defineConfig({
         "src/**/index.ts",
         "src/**/*.test.{ts,tsx}",
         "src/**/__tests__/**",
+        "src/test/**",
         "src/i18n/navigation.ts",
         "src/i18n/request.ts",
+        "src/components/ui/sonner.tsx",
       ],
       thresholds: {
         lines: 80,

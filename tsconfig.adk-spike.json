@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["scripts/verify-adk.ts"],
+  "exclude": ["node_modules", ".next", "coverage"]
+}

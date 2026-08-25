@@ -43,3 +43,8 @@ vi.mock("@/i18n/navigation", () => ({
   usePathname: () => "/",
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
 }));
+
+// jsdom does not implement scrollIntoView
+if (typeof Element !== "undefined" && !Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = vi.fn() as unknown as typeof Element.prototype.scrollIntoView;
+}

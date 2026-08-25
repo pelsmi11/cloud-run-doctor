@@ -22,7 +22,7 @@ vi.mock("next-intl/server", () => ({
 
 describe("localized root layout", () => {
   it("pre-renders every supported locale", () => {
-    expect(generateStaticParams()).toEqual([{ locale: "en" }, { locale: "es" }]);
+    expect(generateStaticParams()).toEqual([{ locale: "es" }, { locale: "en" }]);
   });
 
   it.each([

@@ -1,147 +1,47 @@
-# Cloud Run Doctor — Tour del código
+# Cloud Run Doctor — Code Tour
 
-**Repositorio**: `cloud-run-doctor/` | **Fecha**: 2026-08-20 | **Estado**: fundación (sin lógica de agente)
+**Repo:** `cloud-run-doctor/` | **Spec:** `004-cloud-run-doctor-diagnosis` | **Date:** 2026-08-24
+**Stack:** Next.js 16.3.1 `runtime=nodejs`, ADK 2.0.0, Gemini `gemini-3.7-flash` `ThinkingLevel.LOW`, MCP Streamable HTTP, Streamdown 2.5.0
 
-Este documento explica archivo por archivo los módulos importantes, sus dependencias y el flujo de una investigación futura. En fundación las carpetas `agent/` y `mcp/` están reservadas con `README.md`.
-
-## Estructura relevante
-
-```
-cloud-run-doctor/src/
-├── app/
-│   ├── [locale]/layout.tsx
-│   ├── [locale]/page.tsx
-│   ├── globals.css
-│   └── api/chat/route.ts
-├── components/
-│   ├── ui/ (7 primitives)
-│   ├── index.ts
-│   ├── SiteHeader.tsx
-│   ├── DoctorHero.tsx
-│   ├── EvidencePreview.tsx
-│   └── LocaleSwitcher.tsx
-├── agent/ (reservado)
-├── mcp/ (reservado)
-├── interface/
-├── utils/
-│   ├── constant/
-│   └── functions/
-└── lib/utils.ts (shim compatible para shadcn)
-```
-
-## Recorrido archivo por archivo
-
-### 1. `src/app/[locale]/layout.tsx`
-
-- **Responsabilidad**: layout raíz. Carga fuentes `Geist`/`Geist_Mono` con `next/font/google`, define `metadata`, aplica `globals.css` y clases `antialiased`, envuelve `children` en `<html lang="en">`.
-- **Depende de**: `next/font/google`, `./globals.css`
-- **Llamado por**: Next.js App Router (no se importa manualmente)
-- **Pruebas**: `src/app/[locale]/layout.test.tsx` verifica locales y metadata
-- **Notas**: comentarios/JSDoc en inglés; no contiene lógica de negocio
-
-### 2. `src/app/globals.css`
-
-- **Responsabilidad**: tokens semánticos HSL estrategia A (`--background: 0 0% 100%` + `@theme inline --color-background: hsl(var(--background))`), modo claro/oscuro `.dark`, `radius` 0.5rem, imports `tailwindcss`/`tw-animate-css`
-- **Depende de**: Tailwind v4, `@theme inline`
-- **Usado por**: todos los `ui/*` y placeholders vía `bg-background`/`text-foreground` etc.
-- **Validación**: `grep --background` triple + `hsl(var(--background))` + `pnpm build` verde
-
-### 3. `src/app/[locale]/page.tsx`
-
-- **Responsabilidad**: home placeholder. Compone `SiteHeader` + `DoctorHero` + `EvidencePreview` en columna con `max-w-5xl` y `gap-8`. Sin estado ni fetch.
-- **Depende de**: `@/components` (barrel de componentes propios)
-- **Testeado por**: `src/app/[locale]/page.test.tsx` (renderiza 3 placeholders)
-- **Futuro**: seguirá siendo entrypoint; en SPEC-004 se añadirá estado de chat si hace falta
-
-### 4. `src/app/api/chat/route.ts`
-
-- **Responsabilidad**: endpoint placeholder para chat del Doctor. Exporta `runtime = "nodejs"` y `POST` que responde `501` con `errorCode: "DOCTOR_NOT_IMPLEMENTED"`; la UI traduce el código.
-- **Depende de**: `next/server` `NextResponse`
-- **Llamado por**: `DoctorHero` futuro (fetch) y tests
-- **Evolución**: en SPEC-004 importará `src/agent/runner.ts` y ejecutará `LlmAgent` con `MCPToolset`; mantendrá `runtime nodejs` y validación de entrada
-
-### 5. `src/components/ui/*` (7 primitives)
-
-- **Archivos**: `button.tsx`, `card.tsx`, `badge.tsx`, `alert.tsx`, `skeleton.tsx`, `scroll-area.tsx`, `separator.tsx` (generados por `shadcn@3.4.1`)
-- **Responsabilidad**: primitives accesibles con `class-variance-authority` y `cn()`. Usan tokens `bg-primary`/`text-primary-foreground` etc., sin hex hardcodeado.
-- **Depende de**: `@/lib/utils` `cn`, `class-variance-authority`, `@radix-ui/*`, `lucide-react`
-- **Usado por**: placeholders y futuro chat/evidence-card
-- **Verificación**: `ls src/components/ui | wc -l` =7, `grep -r "bg-\[#" ` vacío, `pnpm build` verde
-
-### 6. `src/components/SiteHeader.tsx`
-
-- **Responsabilidad**: header técnico con título y `Badge` evidence
-- **Depende de**: `@/components/ui/badge`
-- **Testeado por**: `SiteHeader.test.tsx`
-
-### 7. `src/components/DoctorHero.tsx`
-
-- **Responsabilidad**: hero técnico con título, `Button` Investigate y badges `healthy`/`warning`/`error`/`evidence` + `Alert` recomendación
-- **Depende de**: `ui/button`, `ui/badge`, `ui/alert`
-- **Testeado por**: `DoctorHero.test.tsx`
-
-### 8. `src/components/EvidencePreview.tsx`
-
-- **Responsabilidad**: preview de evidencia con `Card` + `ScrollArea` (h-40) + `<pre>` mono + `Separator` + `Alert` next step
-- **Depende de**: `ui/card`, `ui/scroll-area`, `ui/separator`, `ui/alert`
-- **Testeado por**: `EvidencePreview.test.tsx`
-- **Notas**: prioriza legibilidad `font-mono`, `h-40` scroll, no contiene datos reales de Cloud Logging
-
-### 9. `src/utils/functions/cn.ts` y `src/lib/utils.ts`
-
-- **Responsabilidad**: `cn(...ClassValue[])` combina `clsx` + `tailwind-merge`; `src/lib/utils.ts` conserva el shim que usan los primitives de shadcn
-- **Depende de**: `clsx`, `tailwind-merge`
-- **Testeado por**: `src/lib/utils.test.ts` (5 tests, 100%)
-
-### 10. `src/utils/functions/format.ts`
-
-- **Responsabilidad**: helpers puros `pluralize`, `formatBadge`, `getSeverityLabel` (healthy/warning/error/evidence/recommended)
-- **Testeado por**: `src/utils/functions/format.test.ts` (12 tests, 100%)
-
-### 11. `src/agent/` (reservado)
-
-- **Archivos**: `README.md` (explica futura estructura)
-- **Futura responsabilidad**: `doctor.agent.ts` (define `LlmAgent` con `instruction` y `tools`), `instruction.ts` (prompt SRE), `runner.ts` (ejecuta agente con `GoogleAuth` y `MCPToolset`)
-- **Dependerá de**: `@google/adk`, `google-auth-library`, `../mcp/*`
-- **No hay código en fundación**
-
-### 12. `src/mcp/` (reservado)
-
-- **Archivos**: `README.md`
-- **Futura responsabilidad**: `auth.ts` (`getMcpHeaders` con `GoogleAuth` y `x-goog-user-project`), `cloud-run.ts`, `logging.ts`, `monitoring.ts` (cada uno `MCPToolset` con transporte Streamable HTTP, headers `Authorization` + `x-goog-user-project`, timeout y allowlist)
-- **Dependerá de**: `google-auth-library`, `@google/adk` `MCPToolset`
-- **Seguridad**: solo lectura, allowlist explícita, IAM como frontera real
-
-## Dependencias entre archivos
+## Flow
 
 ```
-page.tsx → components/index.ts → SiteHeader.tsx / DoctorHero.tsx / EvidencePreview.tsx → ui/*
-page.tsx → layout.tsx → globals.css → @theme inline
-api/chat/route.ts → (futuro) agent/runner.ts → agent/doctor.agent.ts → mcp/* → GoogleAuth
-lib/utils.ts ← ui/* (shim) ← utils/functions/cn.ts
+question → QueryClassification (validation.ts) → InvestigationScope (argument-policy.ts) → LlmAgent (doctor.agent.ts) → local capability → McpArgumentPolicy → adapter MCP (cloud-run.ts/logging.ts) → MCP raw unknown → Evidence mapper (evidence-mapper.ts) → classifier/result → LlmAgent → SSE (stream.ts) → Streamdown (StreamdownRenderer.tsx) → UI
 ```
 
-## Flujo de una investigación (futuro, reservado)
+ToolFilter limits names; McpArgumentPolicy validates args server-owned before `tools/call`. Evidence never exceeds `scopeLimit`; `hasNextPageToken` never leaves mapper.
 
-```
-Usuario escribe pregunta en page.tsx (chat)
-  → POST /api/chat { message: "REQ-789" }
-    → route.ts (runtime nodejs) valida entrada
-      → runner.ts crea GoogleAuth client y headers MCP
-        → doctor.agent.ts (LlmAgent) con instruction SRE
-          → MCPToolset Cloud Run (listar servicio pawpass)
-          → MCPToolset Logging (filtrar jsonPayload.requestId="REQ-789")
-          → (MVP2) MCPToolset Monitoring (request_latencies)
-        → agente compone evidencia → respuesta estructurada:
-          estado observado / síntoma / evidencia / causa probable / recomendación / incertidumbre
-      → route.ts responde { answer, investigationId }
-    → page.tsx renderiza EvidencePreview con badges de severidad
-```
+## File-by-file
 
-En fundación el flujo termina en `501` placeholder; las rutas y README garantizan que `tasks.md` pueda referenciar archivos exactos sin implementar lógica.
+- `src/lib/env.ts` — Zod FR-048 canonical config, HTTPS without creds/fragment, ranges 60/20 & 1440/100, `ThinkingLevel.LOW` enum via `generateContentConfig.thinkingConfig.thinkingLevel`, lazy `getEnv()` no side effects at import, ignores `GOOGLE_API_KEY`.
+- `src/lib/validation.ts` — `chatRequestSchema` 1..4000 + `locale es|en`, `QueryClassification` 9-step FR-040: labels `\b(?:request\s*id|support\s*id)\b` / `\b(?:session\s*id|session)\b` case-insensitive ≤20 chars `[:=#-]`, priority: malformed→mixed→multiple→deduplicate→session/request→isolated→general, `invalid`→400 no MCP.
+- `src/lib/logger.ts` — accepts only `Evidence` normalized or `LogSummary`, never raw MCP, tokens, cookies, headers, `DATABASE_URL`; sanitizes to JSON with `doctorRequestId===supportId===investigationId`.
+- `src/lib/stream.ts` — SSE `data: JSON\n\n` with 7 events: `investigation-started` first before Gemini/MCP, `status`, `tool-start`, `tool-result-summary` (≤300 chars), `text-delta`, `error` (fatal only, with `supportId`), `done`; `abort→cancelled` no terminal; `parseSse` handles split chunks.
+- `src/mcp/auth.ts` — `GoogleAuth` with `run.readonly`/`logging.read`, `Authorization` + `x-goog-user-project`, no token persistence, refresh via `getRequestHeaders()`.
+- `src/mcp/argument-policy.ts` — `InvestigationScope` immutable `pawpass-gdg-demo/us-central1/pawpass` + variant 60/20 or 1440/100, `buildLoggingArgs`/`buildCloudRunArgs` from server-owned, `revalidate*` before `tools/call`, rejects model overrides.
+- `src/mcp/evidence-mapper.ts` — `unknown→Evidence` whitelist, per-field maxima 63/32/64/128/256/128/16, `observedAt` `datetime({offset:true})`, `verifiedOn` `YYYY-MM-DD`, `rawCount` vs `scopeLimit` vs `500`, `truncated = hasNextPageToken||rawCount>=scopeLimit`, output ≤`scopeLimit`, `500/500→true`, `501→error`, `nextPageToken` private.
+- `src/mcp/allowlist.ts` — `McpAllowlist` with `verifiedOn` per server, empty until real `tools/list`, `toolFilter` string[].
+- `src/mcp/cloud-run.ts` / `logging.ts` — adapters with ADC, timeout 15000, `toolFilter` real, revalidate before `tools/call`, `unknown→Evidence`, `MCPToolset.close()` in `finally`, transport injectable for tests.
+- `src/mcp/index.ts` — barrel.
+- `src/agent/instruction.ts` — SRE 6 sections, no invention, `23503` fact vs desync probable.
+- `src/agent/doctor.agent.ts` — single `LlmAgent` `doctor`, model `gemini-3.7-flash`, `ThinkingLevel.LOW`, one `FunctionTool` `investigate` closed over `Scope`, schema no sensitive args, never `MCPToolset`.
+- `src/agent/runner.ts` — `InMemoryRunner` per request, `runInvestigation` streams SSE: `investigation-started` first, `status`/`tool-*` from Evidence, `text-delta` Gemini narrative, `done` vs `error` exclusive, `abort→cancelled` without terminal, `close()` in `finally`.
+- `src/agent/request-investigation.ts` / `session-investigation.ts` / `general-investigation.ts` — local capabilities closed over scope, use policy→adapter→mapper→`Evidence` sorted asc for session, `classifyPattern` pure outside Gemini, `confidenceReduced` from `truncated`.
+- `src/app/api/chat/route.ts` — `runtime=nodejs`, `maxDuration=300`, generates `doctorRequestId` before parse, `supportId===investigationId===doctorRequestId`, Zod + `QueryClassification` `invalid`→400 JSON no SSE/MCP, otherwise `runInvestigation` → `text/event-stream` with required headers, ignores `Cookie`.
+- `src/hooks/useChatStream.ts` — client `isInvestigating` before first `await` via sync state + `useEffect` observing `pendingMessage`, single `fetch` even with StrictMode, blocked second send, `AbortController`, `cancelled` keeps partial, no `flushSync`.
+- `src/components/chat/ChatView.tsx` — history in memory of current locale instance, selector disabled `investigating`/`partial`, re-enabled after terminal, change after terminal → empty conversation, no `localStorage`.
+- `src/components/chat/ChatInput.tsx` — textarea + button, trim, Enter, blocked when empty/disabled, no queue.
+- `src/components/chat/ProgressPanel.tsx` — `status`/`tool-start`/`tool-result-summary` only from Evidence, no CoT.
+- `src/components/chat/MessageBubble.tsx` — copy via `navigator.clipboard.writeText` with fallback (no `execCommand`), selectable.
+- `src/components/chat/StreamdownRenderer.tsx` — `Streamdown` 2.5.0 + `@streamdown/code` 1.1.1, `parseIncompleteMarkdown`, `urlTransform` https/http only.
+- `src/components/ui/textarea.tsx` / `sonner.tsx` — shadcn primitives.
+- `src/i18n/routing.ts` — `locales ["es","en"]`, `defaultLocale "es"`, `localePrefix always`.
+- `src/app/globals.css` — `@import "streamdown/styles.css"` + `@source` for Streamdown, HSL slate tokens.
+- `scripts/verify-adk.ts` — spike compiles ADK types, `FunctionTool` local, `MCPToolset` StreamableHTTP, `ThinkingLevel.LOW`, `InMemoryRunner` abortSignal; no network.
+- `scripts/list-mcp-tools.ts` / `verify-mcp-arguments.ts` — manual outside `pnpm verify`, record `verifiedOn`.
 
-## Notas de idioma y estilo
+## Security
 
-- Código/comentarios/JSDoc/tests en inglés; este tour y docs en español
-- No hay llamadas a Neon/Gemini/MCP reales; tests usan dobles deterministas
-- Placeholders son estáticos, sin `useState`/`fetch`/`Zod`
+- `toolFilter` limits names; `McpArgumentPolicy` enforces args server-owned.
+- Payload MCP `unknown` → mapper → `Evidence` before Gemini/logs/SSE/UI.
+- IAM runtime `run.viewer/logging.viewer/mcp.toolUser/aiplatform.user`, operator `run.invoker`, `owner/editor/run.admin` prohibited.

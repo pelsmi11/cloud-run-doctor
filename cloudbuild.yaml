@@ -1,0 +1,60 @@
+steps:
+  - id: verify
+    name: node:22.23.2-bookworm-slim
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        corepack enable
+        corepack prepare pnpm@11.9.0 --activate
+        pnpm install --frozen-lockfile --ignore-scripts
+        pnpm verify
+
+  - id: build-image
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --pull
+      - --tag
+      - ${_IMAGE}:${SHORT_SHA}
+      - .
+
+  - id: push-image
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_IMAGE}:${SHORT_SHA}
+
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_IMAGE}:${SHORT_SHA}
+      - --project=$PROJECT_ID
+      - --region=${_REGION}
+      - --platform=managed
+      - --service-account=${_RUNTIME_SERVICE_ACCOUNT}
+      - --port=8080
+      - --timeout=300s
+      - --max-instances=2
+      - --no-allow-unauthenticated
+      - --ingress=all
+      - --set-env-vars=GOOGLE_GENAI_USE_ENTERPRISE=TRUE,GOOGLE_CLOUD_PROJECT=$PROJECT_ID,GOOGLE_CLOUD_LOCATION=global,DOCTOR_MODEL=gemini-3.7-flash,DOCTOR_THINKING_LEVEL=LOW,PAWPASS_SERVICE=pawpass,PAWPASS_REGION=us-central1,MCP_CLOUD_RUN_URL=https://run.googleapis.com/mcp,MCP_LOGGING_URL=https://logging.googleapis.com/mcp,MONITORING_MCP_ENABLED=false,LOG_DEFAULT_WINDOW_MIN=60,LOG_MAX_ENTRIES=20,SESSION_LOG_WINDOW_MIN=1440,SESSION_LOG_MAX_ENTRIES=100
+      - --quiet
+
+images:
+  - ${_IMAGE}:${SHORT_SHA}
+
+substitutions:
+  _IMAGE: us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-doctor/cloud-run-doctor
+  _REGION: us-central1
+  _RUNTIME_SERVICE_ACCOUNT: cloud-run-doctor-sa@pawpass-gdg-demo.iam.gserviceaccount.com
+  _SERVICE: cloud-run-doctor
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: 1800s

@@ -1,4 +1,5 @@
-import { DoctorHero, EvidencePreview, SiteHeader } from "@/components";
+import { DoctorHero, SiteHeader } from "@/components";
+import { ChatView } from "@/components/chat/ChatView";
 
 const Home = () => {
   return (
@@ -6,7 +7,7 @@ const Home = () => {
       <SiteHeader />
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 p-6">
         <DoctorHero />
-        <EvidencePreview />
+        <ChatView />
       </main>
     </div>
   );
