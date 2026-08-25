@@ -17,6 +17,10 @@ RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 COPY --from=base /app/public ./public
 COPY --from=base /app/.next/standalone ./
 COPY --from=base /app/.next/static ./.next/static
+# Next's standalone tracer keeps only the CommonJS part of this pnpm package,
+# while the runtime resolves the ESM helper through the pnpm symlink graph.
+COPY --from=base /app/node_modules/.pnpm/@swc+helpers@0.5.23/node_modules/@swc/helpers ./node_modules/.pnpm/@swc+helpers@0.5.23/node_modules/@swc/helpers
+RUN test -f ./node_modules/.pnpm/@swc+helpers@0.5.23/node_modules/@swc/helpers/esm/_interop_require_default.js
 USER nextjs
 EXPOSE 8080
 CMD ["node", "server.js"]
