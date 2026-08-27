@@ -75,6 +75,21 @@ ChatView → useChatStream → POST /api/chat
 
 El modelo no elige el proyecto, la región, el servicio ni filtros libres. El servidor crea esos argumentos, valida las respuestas MCP y limita la evidencia antes de entregarla al agente. En la ruta productiva, MCP se consume directamente mediante `@modelcontextprotocol/sdk`; `MCPToolset` solamente aparece en el spike de verificación de ADK.
 
+### Funciones importantes por etapa
+
+| Etapa | Función principal | Archivo | Responsabilidad |
+| --- | --- | --- | --- |
+| UI y envío | `ChatView`, `useChatStream` | `src/components/chat/ChatView.tsx`, `src/hooks/useChatStream.ts` | Envía `{ message, locale }`, abre el `POST` y consume SSE. |
+| Entrada HTTP | `POST` | `src/app/api/chat/route.ts` | Valida la petición, clasifica la consulta y crea la respuesta `text/event-stream`. |
+| Clasificación y alcance | `chatRequestSchema`, `classifyQuery`, `createInvestigationScope` | `src/lib/validation.ts`, `src/mcp/argument-policy.ts` | Decide `request`, `session` o `general` y fija los parámetros server-owned. |
+| Orquestación | `runInvestigation`, `executeStrategy` | `src/agent/runner.ts` | Emite progreso, elige la estrategia y coordina la investigación. |
+| Consulta MCP | `createCloudRunAdapter`, `createLoggingAdapter` | `src/mcp/cloud-run.ts`, `src/mcp/logging.ts` | Llama `get_service` y `list_log_entries` con argumentos revalidados. |
+| Normalización | `mapEvidenceCollection`, `normalizeLoggingEntry`, `normalizeCloudRunService` | `src/mcp/evidence-mapper.ts` | Convierte respuestas externas en `Evidence` segura y limitada. |
+| Clasificación | `classifyPattern` | `src/agent/general-investigation.ts` | Calcula los patrones conocidos y la confianza reducida. |
+| Diagnóstico ADK | `createDoctorAgent`, `streamDiagnosisWithAdk` | `src/agent/doctor.agent.ts`, `src/agent/runner.ts` | Entrega la evidencia al agente y transmite la explicación de Gemini. |
+
+El detalle de cada función y el orden de llamadas está en [`docs/03-agent-code-tour.md`](docs/03-agent-code-tour.md).
+
 ## Verificación
 
 ```bash
