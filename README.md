@@ -1,6 +1,6 @@
 # Cloud Run Doctor
 
-Aplicación Next.js App Router para diagnosticar PawPass vía observabilidad de Google Cloud. La interfaz está localizada en inglés y español con `next-intl`; en fundación es un placeholder técnico, calmado y legible sin agente ni MCP.
+Aplicación Next.js App Router para diagnosticar PawPass usando observabilidad de Google Cloud. La interfaz está localizada en inglés y español con `next-intl`. El flujo real combina una investigación controlada por el servidor, clientes MCP de solo lectura y un agente ADK que redacta el diagnóstico a partir de evidencia normalizada.
 
 ## Requisitos
 
@@ -34,15 +34,15 @@ cloud-run-doctor/
 │   ├── app/
 │   │   ├── [locale]/layout.tsx, [locale]/page.tsx (rutas `/en` y `/es`)
 │   │   ├── globals.css (tokens HSL técnicos, hsl(var(--)))
-│   │   └── api/chat/route.ts (placeholder 501 con `errorCode`, runtime nodejs)
+│   │   └── api/chat/route.ts (POST del chat, runtime nodejs y respuesta SSE)
 │   ├── i18n/ (routing, request y navegación localizada)
 │   ├── proxy.ts (redirección `/` → `/en`, excluye APIs/assets)
 │   ├── components/
 │   │   ├── ui/ (button, card, badge, alert, skeleton, scroll-area, separator — 7)
 │   │   ├── index.ts (barrel de componentes propios)
 │   │   └── SiteHeader.tsx, DoctorHero.tsx, EvidencePreview.tsx, LocaleSwitcher.tsx
-│   ├── agent/ (reservado README)
-│   ├── mcp/ (reservado README)
+│   ├── agent/ (runner, estrategias de investigación y agente ADK)
+│   ├── mcp/ (autenticación, política de argumentos, clientes y mappers)
 │   ├── interface/ (tipos compartidos y augmentations de next-intl)
 │   ├── utils/
 │   │   ├── constant/ (constantes propias)
@@ -58,7 +58,22 @@ cloud-run-doctor/
 ## Documentación
 
 - `docs/02-visual-decisions.md` — paleta técnica y tokens `healthy`/`evidence`/`recommended`
-- `docs/03-agent-code-tour.md` — recorrido archivo por archivo y flujo `pregunta→handler→runner→LlmAgent→MCPToolset→respuesta`
+- `docs/03-agent-code-tour.md` — flujo resumido del agente real y mapa de archivos principales
+- `docs/mcp-tools-observed.md` — herramientas MCP observadas y fecha de verificación
+
+## Flujo real del agente
+
+```text
+ChatView → useChatStream → POST /api/chat
+  → validación y clasificación de la consulta
+  → InvestigationScope controlado por el servidor
+  → Cloud Run MCP (get_service) + Cloud Logging MCP (list_log_entries)
+  → Evidence normalizada y clasificación determinista
+  → LlmAgent de ADK + Gemini para redactar el diagnóstico
+  → SSE → interfaz
+```
+
+El modelo no elige el proyecto, la región, el servicio ni filtros libres. El servidor crea esos argumentos, valida las respuestas MCP y limita la evidencia antes de entregarla al agente. En la ruta productiva, MCP se consume directamente mediante `@modelcontextprotocol/sdk`; `MCPToolset` solamente aparece en el spike de verificación de ADK.
 
 ## Verificación
 
@@ -76,4 +91,4 @@ pnpm build
 - El selector `EN / ES` conserva la ruta actual.
 - Las APIs no llevan prefijo de locale y devuelven códigos estables, no texto localizado.
 
-Fundación sin Gemini, ADK, MCP real, Neon ni lógica de negocio. La interfaz visible está disponible en inglés y español.
+El proyecto no consulta una base de datos directamente: diagnostica a partir del estado de Cloud Run y de los registros de Cloud Logging. La interfaz visible está disponible en inglés y español.
